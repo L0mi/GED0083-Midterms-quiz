@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GED0083 Formative Reviewer</title>
+<style>
+:root{--bg:#070b12;--panel:#101722;--panel2:#151e2c;--text:#eef2f7;--muted:#9ba8ba;--line:#263244;--accent:#7c83ff;--good:#36d399;--bad:#ff6b6b;--warn:#f6c453}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top,#111a2a 0,#070b12 50%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:28px 16px 60px}.panel{background:rgba(16,23,34,.96);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.title{font-size:clamp(26px,4vw,38px);margin:0 0 4px}.sub{color:var(--muted);margin:0}.stats{display:flex;gap:10px;flex-wrap:wrap}.pill{background:var(--panel2);border:1px solid var(--line);padding:9px 13px;border-radius:999px;font-weight:800}.bar{height:10px;background:#202b3b;border-radius:999px;overflow:hidden;margin:22px 0 28px}.bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#b08cff);transition:width .25s ease}
+.meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}.tag{padding:5px 9px;border-radius:999px;background:#192233;border:1px solid var(--line);color:#cfd7e5}.question{font-size:23px;line-height:1.35;margin:8px 0 20px}.choices{display:grid;gap:12px}.choice{width:100%;border:2px solid #2c3a4f;background:#121b28;color:var(--text);padding:16px 17px;border-radius:14px;text-align:left;font-size:17px;cursor:pointer;transition:.15s}.choice:hover:not(:disabled){border-color:#6670d8;background:#182235}.choice:disabled{cursor:default;opacity:.96}.choice.wrong{border-color:var(--bad);background:#311b22}.choice.correct{border-color:var(--good);background:#102d25}.tf .choice{font-weight:800;text-align:center}
+.feedback{min-height:46px;margin-top:16px;padding:12px 14px;border-radius:12px;background:#0d141f;border:1px solid var(--line);color:#dce4f0}.feedback.good{border-color:#235e4e}.feedback.bad{border-color:#6b2d37}.hint{margin-top:12px}.hint summary{cursor:pointer;color:#bfc8d8}.hint p{color:var(--muted);margin:10px 0 0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}.primary{background:var(--accent);color:white}.secondary{background:#263244;color:var(--text)}.next{display:none}.locknote{color:var(--muted);font-size:14px;margin-top:12px}
+#results,#answers{display:none}.result-big{font-size:52px;font-weight:900;margin:8px 0}.result-sub{color:var(--muted)}.ans-item{padding:16px 0;border-bottom:1px solid var(--line)}.ans-item:last-child{border-bottom:0}.ans-q{font-weight:800;margin-bottom:6px}.ans-a{color:#bff5e3}.ans-src{color:var(--muted);font-size:13px;margin-top:6px}.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:600px){.panel{padding:20px}.question{font-size:20px}.choice{font-size:16px}.stats{width:100%}.pill{flex:1;text-align:center}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel" id="quizPanel">
+    <div class="header">
+      <div>
+        <h1 class="title">GED0083 Formative Reviewer</h1>
+        <p class="sub">Conceptual questions only — problem-solving/calculation items excluded.</p>
+      </div>
+      <div class="stats">
+        <div class="pill" id="count">Question 1 of 30</div>
+        <div class="pill">🔥 Streak: <span id="streak">0</span></div>
+      </div>
+    </div>
+    <div class="bar"><span id="progress"></span></div>
+    <div class="meta"><span class="tag" id="topic"></span><span class="tag" id="source"></span></div>
+    <div class="question" id="question"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback">Choose an answer.</div>
+    <details class="hint"><summary>Show hint</summary><p id="hint"></p></details>
+    <div class="actions"><button class="btn primary next" id="next">Next Question</button></div>
+    <div class="locknote">A wrong answer does not advance the question. Change your answer and try again. Your streak resets on a wrong attempt.</div>
+  </div>
+
+  <div class="panel" id="results">
+    <h2>Reviewer Complete</h2>
+    <div class="result-big" id="score"></div>
+    <p class="result-sub" id="resultText"></p>
+    <div class="actions"><button class="btn primary" id="viewAnswers">View All Correct Answers</button><button class="btn secondary" id="restart">Restart</button></div>
+  </div>
+
+  <div class="panel" id="answers">
+    <h2>All Correct Answers</h2>
+    <p class="result-sub">These are the verified answers used by the reviewer.</p>
+    <div id="answerList"></div>
+    <div class="actions"><button class="btn secondary" id="backResults">Back to Results</button></div>
+  </div>
+</div>
+<script>
+const qs = [
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 5–7',type:'mc',q:'Which description best defines fluid mechanics?',o:['The study of the behavior of fluids, including liquids and gases.','The study of solid deformation only.','The study of electric circuits and currents.','The study of planetary motion only.'],a:0,h:'Think about the two broad types of substances identified as fluids in the document.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 6',type:'mc',q:'What is fluid statics?',o:['The study of fluids at rest or in equilibrium.','The study of fluids in motion.','The study of solid objects at rest.','The study of heat transfer in fluids.'],a:0,h:'Compare the terms statics and dynamics.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 6',type:'mc',q:'What is fluid dynamics?',o:['The study of fluids in motion.','The study of fluids at rest.','The study of fluid density only.','The study of container shape only.'],a:0,h:'The keyword is the opposite of “at rest.”'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 7',type:'mc',q:'Density is defined as:',o:['mass per unit volume','force per unit area','volume per unit mass','mass multiplied by area'],a:0,h:'Recall what quantity describes how much mass is packed into a given space.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 9',type:'mc',q:'Relative density compares a material’s density with the density of:',o:['water','air','mercury','steel'],a:0,h:'The document uses a standard reference density.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 11',type:'mc',q:'What is the SI unit of pressure?',o:['Pascal (Pa)','Newton (N)','Joule (J)','Coulomb (C)'],a:0,h:'Pressure is expressed as force per area; identify its SI derived unit.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 11',type:'mc',q:'According to the pressure relationship in the reference, pressure is:',o:['force exerted on a given area','mass contained in a volume','energy transferred per second','distance traveled per unit time'],a:0,h:'The reference gives a direct relationship involving force and area.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 12, 16',type:'mc',q:'For a fluid at rest, what happens to pressure as depth increases?',o:['It increases.','It decreases.','It remains exactly zero.','It becomes independent of density.'],a:0,h:'Look at the reference statement about going deeper in a swimming pool.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 13',type:'tf',q:'The force exerted by a fluid on the wall of its container acts perpendicular to the wall.',a:0,h:'Check the stated property of fluid pressure on container boundaries.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 14–16',type:'tf',q:'Fluid pressure at a particular depth acts only downward.',a:1,h:'The reference emphasizes the directions in which fluid pressure acts.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 15–16',type:'mc',q:'At the same depth in a connected fluid, pressure is described as being:',o:['the same regardless of the container’s shape or area','higher only in wide containers','lower only in narrow containers','determined only by the container’s color'],a:0,h:'The reference section is titled “Independence of Shape and Area.”'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 21',type:'mc',q:'What does Pascal’s principle state?',o:['An external pressure applied to an enclosed fluid is transmitted uniformly throughout the fluid.','Only pressure at the surface is transmitted through a fluid.','Pressure disappears when applied to an enclosed fluid.','Fluid pressure is transmitted only upward.'],a:0,h:'Think about how hydraulic jacks multiply force through pressure transmission.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 22',type:'mc',q:'In the hydraulic-pressure discussion, which relationship represents equal displaced fluid volume?',o:['A₁d₁ = A₂d₂','A₁ + d₁ = A₂ + d₂','A₁d₂ = A₂d₁','A₁/A₂ = d₁d₂'],a:0,h:'The same amount of fluid moves from one side to the other.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 28–31',type:'mc',q:'What is buoyant force?',o:['The upward force exerted by a fluid on a submerged or floating object.','The downward force exerted by an object on the fluid.','The force caused only by the object’s material.','The force that exists only in gases.'],a:0,h:'The reference introduces buoyant force using a ball pushed under water.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, pp. 29–31',type:'mc',q:'According to Archimedes’ principle, the magnitude of buoyant force equals:',o:['the weight of the fluid displaced by the object','the weight of the object in air in every situation','the object’s mass times its volume','the pressure at the top surface only'],a:0,h:'Focus on what the displaced fluid contributes to buoyancy.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 31',type:'mc',q:'In the buoyant-force formula, V represents:',o:['the volume of fluid displaced','the total volume of the container','the volume of gas above the fluid','the volume of the object’s empty space only'],a:0,h:'The formula is tied directly to Archimedes’ principle.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 33',type:'tf',q:'When an object floats partially submerged, the buoyant force exactly balances the object’s weight.',a:0,h:'Think about the force balance required for a floating object to remain at rest.'},
+{topic:'Fluid Mechanics',source:'Reference: Fluid Mechanics PDF, p. 33',type:'tf',q:'For floating objects, the relative density of the object is unrelated to the fraction of its volume that is submerged.',a:1,h:'The reference links relative density with displaced-water volume and object volume.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 4',type:'mc',q:'Temperature is best described in the reference as:',o:['the degree of hotness of an object','the total mass of an object','the force per unit area','the amount of material in a container'],a:0,h:'The reference distinguishes temperature from heat.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 4',type:'mc',q:'Heat is energy that, because of a temperature difference, transfers from:',o:['higher temperature to lower temperature','lower temperature to higher temperature only','larger mass to smaller mass','greater volume to smaller volume'],a:0,h:'Think about the direction of spontaneous heat transfer described in the reference.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 5',type:'mc',q:'Thermal physics deals primarily with:',o:['temperature, heat energy, and their relation to matter','only electric charge and voltage','only fluid pressure','only motion under gravity'],a:0,h:'Use the three key ideas stated in the definition.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 6',type:'mc',q:'According to the reference, mercury in a thermometer freezes at approximately:',o:['−39 °C','0 °C','37 °C','100 °C'],a:0,h:'The thermometer section gives both the freezing and boiling points of mercury.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 8–10',type:'tf',q:'All matter expands when heated because of increased molecular vibration, according to the reference.',a:0,h:'Check the statement in the section on expansion of solids, liquids, and gases.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 9–10',type:'mc',q:'For moderate temperature changes, the change in length of a rod is directly proportional to:',o:['the change in temperature','the object’s color','the container’s shape','the object’s density alone'],a:0,h:'Look at the linear-expansion statement before the formula.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 12–13',type:'tf',q:'When an object undergoes thermal expansion, any holes in the object also expand.',a:0,h:'The reference explicitly discusses holes in heated plates.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 16–17',type:'mc',q:'What is the relationship between the coefficient of volume expansion β and the coefficient of linear expansion α in the reference?',o:['β = 3α','β = 2α','β = α/3','β = α²'],a:0,h:'The volume-expansion section states a simple proportional relationship.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 23',type:'mc',q:'Conduction is heat transfer mainly by:',o:['molecular and electron collisions within a substance','currents carrying heated fluid from place to place','electromagnetic waves through space','changes in gravitational potential'],a:0,h:'The reference contrasts conduction with convection and radiation.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 24',type:'mc',q:'Convection is heat transfer in a gas or liquid primarily by:',o:['currents in the moving fluid','electron collisions in a solid only','electromagnetic waves only','a vacuum with no particle motion'],a:0,h:'The reference uses hot air rising as its example.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 25',type:'mc',q:'Radiation transfers energy through:',o:['electromagnetic waves','fluid currents only','direct molecular contact only','solid-body compression only'],a:0,h:'Radiation is distinguished from conduction and convection by its mechanism.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 26–27',type:'tf',q:'Calorimetry means measuring heat.',a:0,h:'This is stated directly in the heat-transfer section.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 27',type:'mc',q:'Specific heat is defined as the amount of heat required to raise the temperature of:',o:['1 kg of a substance by 1 °C','1 g of any substance by 100 °C','1 m³ of a fluid by 1 °C','1 kg of water from 14.5 °C to 15.5 °C only'],a:0,h:'The reference defines specific heat using mass and a one-degree temperature rise.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, pp. 28–29',type:'mc',q:'The Zeroth Law of Thermodynamics says that if system C is in thermal equilibrium with A and B, then:',o:['A and B are also in thermal equilibrium with each other','A and B must have different temperatures','C must contain more energy than A and B','A and B must be isolated from C'],a:0,h:'Think about thermal equilibrium as a transitive relationship.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 29',type:'tf',q:'Two systems are in thermal equilibrium if and only if they have the same temperature.',a:0,h:'The reference explicitly links thermal equilibrium with temperature equality.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 37',type:'mc',q:'A phase change occurs when heat is absorbed or released without a change in:',o:['temperature','mass','volume','density in every case'],a:0,h:'Look at the definition of phase change before the latent-heat formulas.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 37',type:'mc',q:'During melting, the reference uses which sign for the latent heat of fusion?',o:['+Lᶠ','−Lᶠ','0','±2Lᶠ'],a:0,h:'The sign convention distinguishes melting from freezing.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 42',type:'mc',q:'Which equation expresses the First Law of Thermodynamics as presented in the reference?',o:['ΔU = Q − W','ΔU = Q + W','ΔU = W − Q','ΔU = QW'],a:0,h:'The reference defines the change in internal energy using heat added and work done by the system.'},
+{topic:'Thermal Physics',source:'Reference: Thermal Physics PDF, p. 42',type:'tf',q:'A closed system can exchange energy but not matter with its surroundings.',a:0,h:'Check the definition given beside the First Law equation.'},
+{topic:'Thermal Physics',source:'Recovered prior formative wording',type:'mc',q:'An ideal black body is thrown into a furnace. The black body is at room temperature. It is observed that ________.',o:['Initially, it is the darkest body and at later times it cannot be distinguished.','Initially, it is the darkest body and at later times the brightest.','It cannot be distinguished at all times.','At all times it is the darkest body.'],a:1,h:'Think about how a black body behaves as its temperature rises relative to surrounding objects.'}
+];
+// NOTE: 35 items are included above; problem-solving/calculation questions were intentionally excluded.
+let idx=0,streak=0,wrongAttempts=0,answered=false;
+const $=id=>document.getElementById(id);
+$('count').textContent=`Question 1 of ${qs.length}`;
+function render(){
+  answered=false;$('next').style.display='none';$('feedback').className='feedback';$('feedback').textContent='Choose an answer.';
+  const x=qs[idx];$('count').textContent=`Question ${idx+1} of ${qs.length}`;$('streak').textContent=streak;$('progress').style.width=`${(idx/qs.length)*100}%`;$('topic').textContent=x.topic;$('source').textContent=x.source;$('question').textContent=x.q;$('hint').textContent=x.h;$('choices').innerHTML='';
+  if(x.type==='tf'){
+    $('choices').classList.add('tf');
+    ['True','False'].forEach((lab,j)=>{const b=document.createElement('button');b.className='choice';b.textContent=lab;b.onclick=()=>pick(j,b);$('choices').appendChild(b)});
+  } else {
+    $('choices').classList.remove('tf');
+    x.o.forEach((lab,j)=>{const b=document.createElement('button');b.className='choice';b.textContent=String.fromCharCode(65+j)+'. '+lab;b.onclick=()=>pick(j,b);$('choices').appendChild(b)});
+  }
+}
+function pick(j,b){
+  if(answered)return;
+  const x=qs[idx];
+  if(j===x.a){
+    answered=true;b.classList.add('correct');streak++;$('streak').textContent=streak;$('feedback').className='feedback good';$('feedback').textContent='Correct! You can proceed.';$('next').style.display='inline-block';
+    [...$('choices').children].forEach(c=>c.disabled=true);
+  } else {
+    b.classList.add('wrong');b.disabled=true;streak=0;wrongAttempts++;$('streak').textContent=0;$('feedback').className='feedback bad';$('feedback').textContent='Not quite — change your answer and try again. The question stays locked until you get it right.';
+  }
+}
+$('next').onclick=()=>{idx++;if(idx<qs.length)render();else finish()};
+function finish(){
+  $('progress').style.width='100%';$('quizPanel').style.display='none';$('results').style.display='block';
+  $('score').textContent=`${qs.length} / ${qs.length}`;$('resultText').textContent=`You completed the reviewer. Wrong attempts before correction: ${wrongAttempts}. Final streak: ${streak}.`;
+  $('answerList').innerHTML=qs.map((x,n)=>{const ans=x.type==='tf'?(x.a===0?'True':'False'):x.o[x.a];return `<div class="ans-item"><div class="ans-q">${n+1}. ${esc(x.q)}</div><div class="ans-a">Correct answer: ${esc(ans)}</div><div class="ans-src">${esc(x.source)}</div></div>`}).join('');
+}
+$('viewAnswers').onclick=()=>{$('results').style.display='none';$('answers').style.display='block'};
+$('backResults').onclick=()=>{$('answers').style.display='none';$('results').style.display='block'};
+$('restart').onclick=()=>location.reload();
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+render();
+</script>
+</body>
+</html>
